@@ -50,7 +50,6 @@ class ScreenPlusPlayApp(ctk.CTk):
         self.in_game_session = False
         self.geometry("1280x800")
         self._build_shell()
-        # Couch mode is mounted during initialization; the first frame is never blank.
         self.couch_view.grid(row=0, column=0, sticky="nsew")
         self.library_view.grid_remove()
         logo_pil = render_brand_logo(64)
@@ -198,7 +197,31 @@ class ScreenPlusPlayApp(ctk.CTk):
         self.refresh_views()
 
     def _hotkeys_allowed(self, event=None):
-        return not self.in_game_session and not isinstance(getattr(event, "widget", None), (ctk.CTkEntry, ctk.CTkTextbox))
+        if self.in_game_session:
+            return False
+
+        for widget in self.winfo_children():
+            if isinstance(widget, ctk.CTkToplevel):
+                try:
+                    if widget.winfo_exists():
+                        return False
+                except Exception:
+                    # Ignore a toplevel already being destroyed.
+                    continue
+
+        event_widget = getattr(event, "widget", None)
+        if isinstance(event_widget, (ctk.CTkEntry, ctk.CTkTextbox, ctk.CTkComboBox)):
+            return False
+
+        try:
+            focused = self.focus_get()
+        except Exception:
+            focused = None
+        focus_name = str(focused).lower() if focused is not None else ""
+        if "combobox" in focus_name or "entry" in focus_name:
+            return False
+
+        return True
 
     def _bind_keys(self):
         self.bind("<Left>", lambda event: self._move(-1) if self._hotkeys_allowed(event) else None)
@@ -371,7 +394,6 @@ class ScreenPlusPlayApp(ctk.CTk):
             lambda exc: self._set_status(f"Metadata error: {exc}"))
 
     def crawl_missing_metadata_async(self):
-        # Crawl only pinned entries with missing metadata; each worker returns a MetadataResult.
         for package, profile in list(self.data["apps"].items()):
             if package == "__ANDROID_HOME__" or not profile.get("pinned"):
                 continue
@@ -459,3 +481,4 @@ class ScreenPlusPlayApp(ctk.CTk):
         self.controller.stop()
         self.runner.stop()
         self.destroy()
+
