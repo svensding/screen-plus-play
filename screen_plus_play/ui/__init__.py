@@ -1,3 +1,5 @@
-# Screen+Play UI
+"""CustomTkinter views, dialogs, overlays, and UI-thread image helpers.
 
-This package contains CustomTkinter views, dialogs, overlays, and UI-thread-only image conversion. Worker threads communicate results through the application's result queue; only the Tk main loop applies model updates and creates `CTkImage` instances.
+Background work returns plain data to the app's Tk-thread result queue; widgets
+and CTkImage instances are created or updated only by the UI thread.
+"""
