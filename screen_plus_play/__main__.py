@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from screen_plus_play.ui.app import ScreenPlusPlayApp
+
 
 def main() -> None:
-    print("Screen+Play core services are ready. UI integration is the next refactor stage.")
+    app = ScreenPlusPlayApp()
+    app.mainloop()
 
 
 if __name__ == "__main__":
